@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<style>
+    .container {
+        display: grid;
+        grid-template-columns: auto auto;
+        background-color: dodgerblue;
+        padding: 10px;
+    }
+
+    .container>div {
+        background-color: #f1f1f1;
+        border: 1px solid black;
+        padding: 10px;
+        font-size: 30px;
+        text-align: center;
+    }
+</style>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <div class="container" id="grid">
+
+    </div>
+    <script>
+        methodImage = document.createElement('img');
+        methodImage.src = './all_possible_chords.png';
+        methodImage.setAttribute("id", "methodImage");
+
+        methodImage.onload = start;
+
+        grid = document.getElementById("grid");
+
+        const aniGridItem = document.createElement('div');
+        let masterSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        masterSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+        aniGridItem.appendChild(masterSvg);
+        grid.appendChild(aniGridItem);
+
+        const imgGridItem = document.createElement('div');
+        imgGridItem.appendChild(methodImage);
+        grid.appendChild(imgGridItem);
+
+        body.onload = start
+
+        function start() {
+            console.log(methodImage.width, methodImage.height);
+            //masterSvg.setAttribute("x", "0");
+            //masterSvg.setAttribute("y", "0");
+
+            
+            masterSvg.setAttribute("width", "" + methodImage.width);
+            masterSvg.setAttribute("height", "" + methodImage.height);
+        }
+    </script>
+</body>
+
+<footer>
+
+</footer>
+
+
+</html>

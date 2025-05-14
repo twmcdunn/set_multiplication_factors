@@ -11,7 +11,7 @@ def all_possible_chords(chord = []):
     compchords = []
 
     # get the highest note in the input chord
-    highestNote = 0
+    highestNote = -1
     if len(chord) > 0:
         max(chord)
 
@@ -28,6 +28,7 @@ def all_possible_chords(chord = []):
             compchords.extend(all_possible_chords(chord_copy))
     return compchords
 
+print(all_possible_chords())
 
 def all_possible_chord_progressions(chord_a, chord_b, progression = []):
     # if the length of the progression is equal to the
