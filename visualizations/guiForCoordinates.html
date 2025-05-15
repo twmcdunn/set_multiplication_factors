@@ -5,15 +5,30 @@
         display: grid;
         grid-template-columns: auto auto;
         background-color: dodgerblue;
-        padding: 10px;
+        /*padding: 10px;*/
     }
 
     .container>div {
         background-color: #f1f1f1;
         border: 1px solid black;
-        padding: 10px;
-        font-size: 30px;
-        text-align: center;
+        /*padding: 10px;*/
+        /*font-size: 30px;*/
+        /*text-align: center;*/
+    }
+
+    .img-overlay-wrap {
+        position: relative;
+        display: inline-block;
+        /* <= shrinks container to image size */
+        transition: transform 150ms ease-in-out;
+        margin: auto;
+        /*padding: 10px;*/
+    }
+
+    .img-overlay-wrap svg {
+        position: absolute;
+        top: 0;
+        left: 0;
     }
 </style>
 
@@ -26,34 +41,85 @@
 
     </div>
     <script>
-        methodImage = document.createElement('img');
+
+        var ws = new WebSocket("ws://localhost:8080");
+
+        const codeLineCoords = [40,58,78,154,210,229,249,325,420,440,458,476,496];
+
+        const higlighter = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        //higlighter.setAttribute("stroke", "blue");
+        // higlighter.setAttribute("stroke-width", "5");
+        higlighter.setAttribute("fill", "yellow");//"none");
+        higlighter.setAttribute("fill-opacity", "0.4");
+
+        const methodImage = document.createElement('img');
         methodImage.src = './all_possible_chords.png';
         methodImage.setAttribute("id", "methodImage");
 
-        methodImage.onload = start;
+
+
+
+        const imgSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        imgSVG.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        imgSVG.appendChild(higlighter);
+        imgSVG.addEventListener("mousemove", mouseMove);
+         imgSVG.addEventListener("click", mouseClick);
+        //methodImage.appendChild(imgSVG);
+
 
         grid = document.getElementById("grid");
 
         const aniGridItem = document.createElement('div');
         let masterSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        masterSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+        masterSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
         aniGridItem.appendChild(masterSvg);
         grid.appendChild(aniGridItem);
 
         const imgGridItem = document.createElement('div');
+        imgGridItem.setAttribute("class", "img-overlay-wrap");
         imgGridItem.appendChild(methodImage);
+        imgGridItem.appendChild(imgSVG);
         grid.appendChild(imgGridItem);
 
-        body.onload = start
+        methodImage.onload = start;
+
+
+        //document.body.onload = start
 
         function start() {
             console.log(methodImage.width, methodImage.height);
+
             //masterSvg.setAttribute("x", "0");
             //masterSvg.setAttribute("y", "0");
-
-            
             masterSvg.setAttribute("width", "" + methodImage.width);
             masterSvg.setAttribute("height", "" + methodImage.height);
+
+            /*
+            imgSVG.setAttribute("x", 0);
+            imgSVG.setAttribute("y", 0);
+            imgSVG.setAttribute("width", String(methodImage.width));
+            imgSVG.setAttribute("height", String(methodImage.height));
+*/
+            imgSVG.setAttribute("width", String(methodImage.width));
+            imgSVG.setAttribute("height", String(methodImage.height));
+            //imgSVG.setAttribute("viewBox","0 0 100 100")
+
+            higlighter.setAttribute("x", 0);//methodImage.getAttribute("x"));
+            higlighter.setAttribute("y", 0);//methodImage.getAttribute("y"));
+            higlighter.setAttribute("width", methodImage.width);//String(methodImage.width));
+            higlighter.setAttribute("height", 20);//String(10));
+
+
+        }
+
+
+        function mouseMove(event) {
+            higlighter.setAttribute("y",event.offsetY);
+
+        }
+
+        function mouseClick(event) {
+            ws.send(event.offsetY +"");
         }
     </script>
 </body>
