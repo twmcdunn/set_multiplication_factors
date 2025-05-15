@@ -13,7 +13,7 @@ def all_possible_chords(chord = []):
     # get the highest note in the input chord
     highestNote = -1
     if len(chord) > 0:
-        max(chord)
+        highestNote = max(chord)
 
     #go up the chromatic scale, starting just 
     # above the highest note in the input chord

@@ -44,7 +44,9 @@
 
         var ws = new WebSocket("ws://localhost:8080");
 
-        const codeLineCoords = [40,58,78,154,210,229,249,325,420,440,458,476,496];
+        const codeLineCoords = [40, 58, 78, 154, 210, 229, 249, 325, 420, 440, 458, 476, 496];
+        var ln = 0;
+
 
         const higlighter = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         //higlighter.setAttribute("stroke", "blue");
@@ -63,7 +65,7 @@
         imgSVG.setAttribute("xmlns", "http://www.w3.org/2000/svg");
         imgSVG.appendChild(higlighter);
         imgSVG.addEventListener("mousemove", mouseMove);
-         imgSVG.addEventListener("click", mouseClick);
+        imgSVG.addEventListener("click", mouseClick);
         //methodImage.appendChild(imgSVG);
 
 
@@ -73,6 +75,7 @@
         let masterSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         masterSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
         aniGridItem.appendChild(masterSvg);
+        //aniGridItem.setAttribute("class", "img-overlay-wrap");
         grid.appendChild(aniGridItem);
 
         const imgGridItem = document.createElement('div');
@@ -91,8 +94,9 @@
 
             //masterSvg.setAttribute("x", "0");
             //masterSvg.setAttribute("y", "0");
-            masterSvg.setAttribute("width", "" + methodImage.width);
-            masterSvg.setAttribute("height", "" + methodImage.height);
+            bounds = aniGridItem.getBoundingClientRect();
+            masterSvg.setAttribute("width", "" + bounds.width);
+            masterSvg.setAttribute("height", "" + bounds.height);
 
             /*
             imgSVG.setAttribute("x", 0);
@@ -109,17 +113,179 @@
             higlighter.setAttribute("width", methodImage.width);//String(methodImage.width));
             higlighter.setAttribute("height", 20);//String(10));
 
-
+            codeRun();
         }
-
+        /*
+        setInterval(function(){
+                    higlighter.setAttribute("y",codeLineCoords[ln % codeLineCoords.length]);
+                    ln++
+                }, 1000);
+                */
 
         function mouseMove(event) {
-            higlighter.setAttribute("y",event.offsetY);
+            higlighter.setAttribute("y", event.offsetY);
 
         }
 
         function mouseClick(event) {
-            ws.send(event.offsetY +"");
+            ws.send(event.offsetY + "");
+        }
+
+        animables = [];
+        var globalScale = 1;
+        var globalOffset = [0, 0];
+
+        class Chord {
+            constructor(contents, pos, dest, spacer) {
+                this.contents = contents;
+                this.pos = pos;
+                this.dest = dest;
+                this.spacer = spacer;
+                this.children = [];
+
+
+                this.circ = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                this.circ.setAttribute("fill", "blue");
+                masterSvg.appendChild(this.circ);
+                this.updateSVG();
+                animables.push(this);
+            }
+
+            animate() {
+                var delta = [];
+
+                for (let i = 0; i < 2; i++) {
+                    delta.push(this.dest[i] - this.pos[i]);
+                }
+                var dist = Math.sqrt(delta[0] * delta[0] + delta[1] * delta[1]);
+                var vel = 0.1 * (dist);
+                if (dist > 0) {
+                    var velratio = vel / Math.sqrt(delta[0] * delta[0] + delta[1] * delta[1]);
+                    delta[0] *= velratio;
+                    delta[1] *= velratio;
+                }
+                this.pos[0] += delta[0];
+                this.pos[1] += delta[1];
+                this.updateChildrenDest();
+                this.updateSVG();
+            }
+
+            begetChild() {
+                var child = new Chord([...this.contents], [...this.pos], [...this.pos], this.spacer / 3.0);
+                this.children.push(child);
+                this.updateChildrenDest();
+                return child;
+            }
+
+            updateChildrenDest() {
+                var spacer = this.spacer;
+
+                var stY = -((this.children.length - 1) * spacer) / 2.0;
+
+                for (let i = 0; i < this.children.length; i++) {
+                    var child = this.children[i];
+                    child.dest[0] = this.pos[0] + i * spacer + stY;
+                    child.dest[1] = this.pos[1] + spacer;
+                }
+/*
+                  for (let i = 0; i < this.children.length; i++) {
+                    var child = this.children[i];
+                    var theta = i * Math.PI * 2 / 8.0;//Math.PI * 2 * i / this.children.length;
+                    var rad = spacer + spacer * i / 8.0;
+                    child.dest[0] = this.pos[0] + rad * Math.cos(theta);
+                    child.dest[1] = this.pos[1] + rad * Math.sin(theta);
+                }
+                    */
+
+
+            }
+
+            updateSVG() {
+                this.circ.setAttribute("cx", "" + Math.round((this.pos[0] + globalOffset[0]) * globalScale));
+                this.circ.setAttribute("cy", "" + Math.round((this.pos[1] + globalOffset[1]) * globalScale));
+                this.circ.setAttribute("r", "" + Math.round((this.spacer / 2.0) * globalScale));
+            }
+
+            add(i) {
+                this.contents.push(i);
+                //this.updateSVG();
+            }
+
+        }
+
+        //var chord = new Chord([], [50, 50], [100, 100]);
+
+        var frame = 1;
+        setInterval(function () {
+            animables.forEach(element => {
+                element.animate();
+            });
+            /*
+                        if (frame % 30 == 0) {
+                            chord.begetChild();
+                        }
+                            */
+                          // globalScale /= 1.01;
+            frame++;
+        }, 100);
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function codeRun() {
+            var sd = 50;
+            async function  all_possible_chords(chord) {
+                higlighter.setAttribute("y", codeLineCoords[0]);
+                await sleep(sd);
+                if (chord.contents.length == 4) {
+                    higlighter.setAttribute("y", codeLineCoords[1]);
+                    await sleep(sd);
+                    chord.contents.sort();
+                    higlighter.setAttribute("y", codeLineCoords[2]);
+                    await sleep(sd);
+                    return [chord];
+                }
+
+                higlighter.setAttribute("y", codeLineCoords[3]);
+                await sleep(sd);
+                var compchords = [];
+
+                higlighter.setAttribute("y", codeLineCoords[4]);
+                await sleep(sd);
+                var highestNote = -1;
+                higlighter.setAttribute("y", codeLineCoords[5]);
+                await sleep(sd);
+                if (chord.contents.length > 0) {
+                    higlighter.setAttribute("y", codeLineCoords[6]);
+                    await sleep(sd);
+                    highestNote = Math.max(chord.contents);
+                }
+
+                higlighter.setAttribute("y", codeLineCoords[7]);
+                await sleep(sd);
+                for (let i = highestNote + 1; i < highestNote + 5; i++) {
+                    higlighter.setAttribute("y", codeLineCoords[8]);
+                    await sleep(sd);
+                    if (!chord.contents.includes(i)) {
+                        higlighter.setAttribute("y", codeLineCoords[9]);
+                        await sleep(sd);
+                        chordCopy = chord.begetChild();
+                        higlighter.setAttribute("y", codeLineCoords[10]);
+                        await sleep(sd);
+                        chordCopy.add(i);
+                        higlighter.setAttribute("y", codeLineCoords[``]);
+                        await sleep(sd);
+                        var results = await all_possible_chords(chordCopy);
+                        compchords.push(... results);
+                    }
+                }
+                higlighter.setAttribute("y", codeLineCoords[12]);
+                await sleep(sd);
+                return compchords;
+            }
+
+            all_possible_chords(new Chord([], [methodImage.width / 2, 100], [methodImage.width / 2, 100],200));
         }
     </script>
 </body>
